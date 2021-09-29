@@ -10,5 +10,6 @@ type ipPoolIfce interface{
 	GetIpNet()(*pg_net.IpWithMask,error)
 	SetIpCIDR(ip *pg_net.IpWithMask)
 	MarkIpAsUsed(ip net.IP)
+	Release(*pg_net.IpWithMask)
 }
 
