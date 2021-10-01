@@ -1,16 +1,19 @@
 package proto_handler
 
 import(
-	ws "github.com/gorilla/websocket"
-	"github.com/pigfall/tzzGoUtil/net"
 	"context"
+"github.com/pigfall/nyx/proto"
 )
 
 func (this *Handler)handleQueryIp(
 	ctx context.Context,
 	msgBytes []byte,
-	conn *ws.Conn,
-	unmarshalFunc func([]byte,interface{},
-)error){
+	unmarshalFunc func([]byte,interface{})(error),
+)(*proto.Msg,interface{}){
 	ipNet := this.clientVPNIp
+	return &proto.Msg{
+		Id:proto.ID_S2C_QUERY_IP,
+	},&proto.S2C_ClientVPNIpNet{
+		IpNet:ipNet.FormatAsIpSlashMask(),
+	}
 }

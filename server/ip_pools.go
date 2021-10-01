@@ -4,3 +4,4 @@ type ipPool struct {
 
 }
 
+func newIpPool()

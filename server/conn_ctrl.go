@@ -7,6 +7,7 @@ import(
 	"github.com/pigfall/tzzGoUtil/net"
 	"github.com/pigfall/tzzGoUtil/log"
 	"github.com/pigfall/nyx/proto"
+	"github.com/pigfall/nyx/server/proto_handler"
 )
 
 type connCtrl struct {
@@ -41,7 +42,7 @@ func (this *connCtrl) Serve(
 	this.conns[clientVPNIpNetStr ] = conn
 	defer delete(this.conns,clientVPNIpNetStr )
 
-	err = connToTunIfce(ctx,this.rawLogger,conn,tunIfce)
+	err = connToTunIfce(ctx,this.rawLogger,conn,tunIfce,clientVPNIpNet)
 	if err != nil {
 		logger.Error("connToTunIfce return err %v",err)
 		return err
@@ -49,7 +50,7 @@ func (this *connCtrl) Serve(
 	return nil
 }
 
-func connToTunIfce(ctx context.Context,rawLogger log.Logger_Log,conn *ws.Conn,tunIfce net.TunIfce)error{
+func connToTunIfce(ctx context.Context,rawLogger log.Logger_Log,conn *ws.Conn,tunIfce net.TunIfce,clientVPNIp *net.IpWithMask)error{
 	logger := log.NewHelper("connToTunIfce",rawLogger,log.LevelDebug)
 	for{
 		msgType,msgBytes,err := conn.ReadMessage()
@@ -70,6 +71,24 @@ func connToTunIfce(ctx context.Context,rawLogger log.Logger_Log,conn *ws.Conn,tu
 			if err != nil {
 				logger.Error("parse custome msg failed %w",err)
 				continue
+			}
+			res,body:= proto_handler.NewHandler(clientVPNIp).Handle(
+				ctx,rawLogger,
+				msg,
+			)
+			if err := res.Err() ;err != nil{
+				err = conn.WriteJSON(res)
+				if err != nil{
+					logger.Error(err)
+				}
+			}else{
+				bodyByte,err := json.Marshal(body)
+				if err != nil {
+					logger.Error(err)
+				}else{
+					res.Body = bodyByte
+					conn.WriteJSON(res)
+				}
 			}
 			//
 		}

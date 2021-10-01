@@ -15,7 +15,7 @@ import(
 func Serve(ctx context.Context,rawLogger log.Logger_Log)error{
 	logger := log.NewHelper("Serve",rawLogger,log.LevelDebug)
 	// { ready tun interface
-	tunIfce, err := tunReady(ctx,logger)
+	tunIfce,_, err := tunReady(ctx,logger)
 	if err != nil{
 		err = fmt.Errorf("准备 tun ifce 环境失败: %w")
 		logger.Error(err)
@@ -24,7 +24,7 @@ func Serve(ctx context.Context,rawLogger log.Logger_Log)error{
 	defer tunIfce.Close()
 	// }
 
-	connCtrl := newConnCtrl()
+	connCtrl := newConnCtrl(,)
 
 	// { socket listen
 	loggerHttpSvr := log.NewHelper("httpServer",rawLogger,log.LevelDebug)
@@ -39,7 +39,7 @@ func Serve(ctx context.Context,rawLogger log.Logger_Log)error{
 				loggerHttpSvr.Error(err)
 				return
 			}
-			err = connCtrl.Serve(ctx,conn)
+			err = connCtrl.Serve(ctx,conn,tunIfce)
 			if err != nil{
 				logger.Error(err)
 			}
