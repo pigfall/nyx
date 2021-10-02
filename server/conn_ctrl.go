@@ -6,8 +6,8 @@ import(
 	ws "github.com/gorilla/websocket"
 	"github.com/pigfall/tzzGoUtil/net"
 	"github.com/pigfall/tzzGoUtil/log"
-	"github.com/pigfall/nyx/proto"
-	"github.com/pigfall/nyx/server/proto_handler"
+	"github.com/pigfall/yingying/proto"
+	"github.com/pigfall/yingying/server/proto_handler"
 )
 
 type connCtrl struct {

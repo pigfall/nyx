@@ -4,7 +4,7 @@ import(
 	"fmt"
 	"context"
 	"encoding/json"
-	"github.com/pigfall/nyx/proto"
+	"github.com/pigfall/yingying/proto"
 	"github.com/pigfall/tzzGoUtil/log"
 	"github.com/pigfall/tzzGoUtil/net"
 )

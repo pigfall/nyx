@@ -2,7 +2,7 @@ package proto_handler
 
 import(
 	"context"
-"github.com/pigfall/nyx/proto"
+"github.com/pigfall/yingying/proto"
 )
 
 func (this *Handler)handleQueryIp(

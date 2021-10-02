@@ -1,4 +1,4 @@
-module github.com/pigfall/nyx
+module github.com/pigfall/yingying
 
 go 1.17
 
