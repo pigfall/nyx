@@ -32,7 +32,7 @@ func (this *connCtrl) Serve(
 	tunIfce net.TunIfce,
 ) (error) {
 	logger := log.NewHelper("Serve",this.rawLogger,log.LevelDebug)
-	clientVPNIpNet,err := this.ipPoolIfce.GetIpNet()
+	clientVPNIpNet,err := this.ipPoolIfce.Take()
 	if err != nil {
 		logger.Error(err)
 		return err
@@ -44,7 +44,7 @@ func (this *connCtrl) Serve(
 
 	err = connToTunIfce(ctx,this.rawLogger,conn,tunIfce,clientVPNIpNet)
 	if err != nil {
-		logger.Error("connToTunIfce return err %v",err)
+		logger.Errorf("connToTunIfce return err %v",err)
 		return err
 	}
 	return nil
