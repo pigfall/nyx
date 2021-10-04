@@ -73,7 +73,4 @@ func Serve(
 	return nil
 }
 
-type ServeCfg struct{
-	Port int `json:"port"`
-}
 

@@ -42,7 +42,7 @@ func tunReady(ctx context.Context,logger log.LoggerLite)(tunIfce net.TunIfce,tun
 		return nil, nil, err
 	}
 	// }
-
+	tunIp = tunCidr
 	return tunIfce, tunIp,nil
 }
 
