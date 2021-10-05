@@ -8,6 +8,7 @@ import(
 		"github.com/pigfall/tzzGoUtil/async"
     ws "github.com/gorilla/websocket"
 		yy "github.com/pigfall/yingying"
+		"github.com/pigfall/yingying/transport"
 		"github.com/pigfall/yingying/proto"
 )
 
@@ -16,7 +17,6 @@ func Run(
 	ctx context.Context,
 	rawLogger log.Logger_Log,
 	cfg *RunCfg,
-	tp yy.Transport,
 )error{
 	wg := sync.WaitGroup{}
 	logger := log.NewHelper("ClientRun",rawLogger,log.LevelDebug)
@@ -27,6 +27,7 @@ func Run(
 		logger.Errorf("Failed to connect server %s",cfg.ServerAddr)
 		return err
 	}
+	tp := transport.NewTPWebSocket(conn)
 	logger.Info("Connected server")
 	async.AsyncDo(
 		ctx,

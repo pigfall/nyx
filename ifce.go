@@ -1,7 +1,7 @@
 package yingying
 
 import(
-"github.com/pigfall/yingying/proto"
+	"github.com/pigfall/yingying/proto"
 )
 
 
