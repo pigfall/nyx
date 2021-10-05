@@ -30,3 +30,4 @@ type S2C_ClientVPNIpNet struct{
 	// format 127.0.0.1/8
 	IpNet string `json:"ipNet"`
 }
+
