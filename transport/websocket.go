@@ -11,7 +11,6 @@ ws	"github.com/gorilla/websocket"
 
 type tpWebsocket struct{
 	conn *ws.Conn
-
 }
 
 
@@ -21,10 +20,22 @@ func NewTPWebSocket(conn *ws.Conn) yy.Transport{
 	}
 } 
 
+func(this *tpWebsocket) Read()(msgType yy.TransprtMsgType,data []byte,err error){
+	msgTypeInt,data,err := this.conn.ReadMessage()
+	if err != nil{
+		return 0,nil,err
+	}
+	if msgTypeInt == ws.BinaryMessage{
+		return yy.IpPacket,data,nil
+	}
+	return yy.Proto,data,nil
+}
+
 func(this *tpWebsocket)WriteIpPacket(ipPacketBytes []byte)(error){
 	return this.conn.WriteMessage(ws.BinaryMessage,ipPacketBytes)
 
 }
+
 func(this *tpWebsocket)WriteMsg(msg *proto.Msg,body interface{})(error){
 	if body != nil{
 		bodyBytes,err := json.Marshal(body)
@@ -35,3 +46,4 @@ func(this *tpWebsocket)WriteMsg(msg *proto.Msg,body interface{})(error){
 	}
 	return this.conn.WriteJSON(msg)
 }
+
