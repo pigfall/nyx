@@ -27,21 +27,26 @@ func handleConnData(
 			return 
 		}
 		var clientIp *net.IpWithMask
+		var tunIfce  net.TunIfce
 		switch msgType {
 		case yy.IpPacket:
-			handleIpPacket(data)
+			err = handleIpPacket(data,tunIfce)
+			if err != nil{
+				logger.Error(err)
+			}
 		case yy.Proto:
-			handleConnProto(data,clientIp)
+			handleConnProto(data,clientIp,tunIfce)
 		default:
 			panic(fmt.Errorf("Undefined msgType %v",msgType))
 		}
 	}
 }
 
-func handleIpPacket(data []byte){
-
+func handleIpPacket(data []byte,tunIfce net.TunIfce)error{
+	_,err := tunIfce.Write(data)
+	return err
 }
 
-func handleConnProto(data []byte,clientIp *net.IpWithMask){
+func handleConnProto(data []byte,clientIp *net.IpWithMask,tunIfce net.TunIfce){
 
 }
