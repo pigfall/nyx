@@ -1,61 +1,44 @@
 package client
 
 import(
-	"sync"
-	"fmt"
-		"context"
-		"github.com/pigfall/tzzGoUtil/log"
-		"github.com/pigfall/tzzGoUtil/async"
-    ws "github.com/gorilla/websocket"
-		yy "github.com/pigfall/yingying"
-		"github.com/pigfall/yingying/transport"
-		"github.com/pigfall/yingying/proto"
+	"context"
+		
+	"github.com/pigfall/tzzGoUtil/async"
+	"github.com/pigfall/tzzGoUtil/log"
+ws "github.com/gorilla/websocket"
 )
 
 
-func Run(
+
+func Run (
 	ctx context.Context,
 	rawLogger log.Logger_Log,
 	cfg *RunCfg,
 )error{
-	wg := sync.WaitGroup{}
-	logger := log.NewHelper("ClientRun",rawLogger,log.LevelDebug)
-
-	logger.Info("Connecting Server")
+	ctx,cancel := context.WithCancel(ctx)
+	defer cancel()
+	logger := log.NewHelper("Run",rawLogger,log.LevelDebug)
+	logger.Info("")
 	conn,_,err := ws.DefaultDialer.Dial(cfg.ServerAddr,nil)
 	if err != nil{
-		logger.Errorf("Failed to connect server %s",cfg.ServerAddr)
-		return err
-	}
-	tp := transport.NewTPWebSocket(conn)
-	logger.Info("Connected server")
-	async.AsyncDo(
-		ctx,
-		&wg,
-		func(ctx context.Context){
-			clientConnReadHandler(
-				ctx,
-				tp,
-				rawLogger,
-			)
-		},
-	)
-	defer wg.Wait()
-	defer conn.Close()
-	err = tp.WriteMsg(
-			&proto.Msg{
-				Id:proto.ID_C2S_QUERY_IP,
-			},
-			nil,
-	)
-	if err != nil {
-		err = fmt.Errorf("Failed to request vpn client ip from server %w ",err)
 		logger.Error(err)
 		return err
 	}
-	return nil
-}
+	asyncCtrl := &async.Ctrl{}
+	asyncCtrl.AppendCancelFuncs(func(){conn.Close()})
+	asyncCtrl.AppendCancelFuncs(cancel)
+	asyncCtrl.OnRoutineQuit(
+			func(){
+				asyncCtrl.Cancel()
+			},
+	)
+	asyncCtrl.AsyncDo(
+			ctx,
+			func(ctx context.Context){
+				handleConnData(ctx,rawLogger,conn,asyncCtrl)
+			},
+	)
 
-func clientConnReadHandler(ctx context.Context,tp yy.Transport,rawLogger log.Logger_Log)error{
-	panic("TODO")
+	asyncCtrl.Wait()
+	return nil
 }
