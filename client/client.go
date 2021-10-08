@@ -18,12 +18,13 @@ func Run (
 	ctx,cancel := context.WithCancel(ctx)
 	defer cancel()
 	logger := log.NewHelper("Run",rawLogger,log.LevelDebug)
-	logger.Info("")
+	logger.Info("Connecting to address ",cfg.ServerAddr)
 	conn,_,err := ws.DefaultDialer.Dial(cfg.ServerAddr,nil)
 	if err != nil{
 		logger.Error(err)
 		return err
 	}
+	logger.Info("Connected")
 	asyncCtrl := &async.Ctrl{}
 	asyncCtrl.AppendCancelFuncs(func(){conn.Close()})
 	asyncCtrl.AppendCancelFuncs(cancel)

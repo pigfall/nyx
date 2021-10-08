@@ -20,12 +20,15 @@ func handleConnData(
 ){
 	tp := transport.NewTPWebSocket(conn)
 	logger := log.NewHelper("handleConnData",rawLogger,log.LevelDebug)
+	logger.Info("Reading msg from server")
 	for {
 		msgType,data,err := tp.Read()
 		if err != nil{
 			logger.Error(err)
 			return 
 		}
+		// < request client  ip
+		// >
 		var clientIp *net.IpWithMask
 		var tunIfce  net.TunIfce
 		switch msgType {
