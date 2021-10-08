@@ -28,6 +28,8 @@ func handleConnData(
 	go func(){
 		tickerQueryIp(ctxQueryIp,tp,logger)
 	}()
+	var clientIp *net.IpWithMask
+	var tunIfce  net.TunIfce
 	for {
 		msgType,data,err := tp.Read()
 		if err != nil{
@@ -36,8 +38,6 @@ func handleConnData(
 		}
 		// < request client  ip
 		// >
-		var clientIp *net.IpWithMask
-		var tunIfce  net.TunIfce
 		switch msgType {
 		case yy.IpPacket:
 			err = handleIpPacket(data,tunIfce)
@@ -45,7 +45,7 @@ func handleConnData(
 				logger.Error(err)
 			}
 		case yy.Proto:
-			handleConnProto(data,logger,&clientIp,tunIfce,cancelQueryIp)
+			handleConnProto(ctx,data,logger,&clientIp,&tunIfce,cancelQueryIp,asyncCtrl,tp)
 		default:
 			panic(fmt.Errorf("Undefined msgType %v",msgType))
 		}
@@ -57,7 +57,7 @@ func handleIpPacket(data []byte,tunIfce net.TunIfce)error{
 	return err
 }
 
-func handleConnProto(data []byte,logger log.LoggerLite,clientIp **net.IpWithMask,tunIfce net.TunIfce,cancelQueryIp func()){
+func handleConnProto(ctx context.Context,data []byte,logger log.LoggerLite,clientIp **net.IpWithMask,tunIfce *net.TunIfce,cancelQueryIp func(),asyncCtrl *async.Ctrl,tp yy.Transport){
 	var msg proto.Msg
 	err := json.Unmarshal(data,&msg)
 	if err != nil{
@@ -82,6 +82,7 @@ func handleConnProto(data []byte,logger log.LoggerLite,clientIp **net.IpWithMask
 			logger.Info("Get Client ip ",ipNet.String())
 			*clientIp = ipNet
 			cancelQueryIp()
+			readyTun(ctx,logger,*clientIp,tunIfce,asyncCtrl,tp)
 		}else{
 			if (*clientIp).String()!=ipNet.String(){
 				panic("Client ip not match")
