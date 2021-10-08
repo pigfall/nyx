@@ -24,6 +24,7 @@ func tunReady(ctx context.Context,logger log.LoggerLite)(tunIfce net.TunIfce,tun
 		logger.Error(err)
 		return nil, nil, err
 	}
+	logger.Info("tun cidr ",tunCidr.String())
 	// }
 
 	// { create tun ifce 
@@ -48,21 +49,30 @@ func tunReady(ctx context.Context,logger log.LoggerLite)(tunIfce net.TunIfce,tun
 
 func findSuitableIp(allIpV4IsUsed []net.IpWithMask)(*net.IpWithMask,error){
 	var subnet = 8
-	encodeIpNet := func(subNet int)string{
-		return fmt.Sprintf("10.%d.0.1/8",subNet)
+	var subnet2 = 0
+	encodeIpNet := func(subNet2,subNet int)string{
+		return fmt.Sprintf("10.%d.%d.1/16",subNet2,subNet)
 	}
+	OUT:
 	for{
-		retIp ,err := net.FromIpSlashMask(encodeIpNet(subnet))
-		if err != nil{
-			return nil,err
+		subnet2++
+		if subnet2 >=255{
+				return nil,fmt.Errorf("Over then 255 , not found unconflict ip to tun ifce")
 		}
-		if net.IpSubnetCoincideOrCoinCided(retIp,allIpV4IsUsed){
-			subnet++
-		}else{
-			return retIp,nil
-		}
-		if subnet >= 255{
-			return nil,fmt.Errorf("Over then 255 , not found unconflict ip to tun ifce")
+		subnet = 1
+		for{
+			retIp ,err := net.FromIpSlashMask(encodeIpNet(subnet2,subnet))
+			if err != nil{
+				return nil,err
+			}
+			if net.IpSubnetCoincideOrCoinCided(retIp,allIpV4IsUsed){
+				subnet++
+			}else{
+				return retIp,nil
+			}
+			if subnet >= 255{
+				continue OUT
+			}
 		}
 	}
 
