@@ -12,7 +12,7 @@ import(
 )
 
 
-func readyTun(ctx context.Context,logger log.LoggerLite,tunIp *net.IpWithMask,tunIfce *net.TunIfce,asyncCtrl *async.Ctrl,tp yy.Transport){
+func readyTun(ctx context.Context,logger log.LoggerLite,tunIp *net.IpWithMask,asyncCtrl *async.Ctrl,tp yy.Transport)(tunIfce net.TunIfce){
 	tun,err := water_wrap.NewTun()
 	if err != nil{
 		err = fmt.Errorf("Create tun ifce failed %v",err)
@@ -24,7 +24,7 @@ func readyTun(ctx context.Context,logger log.LoggerLite,tunIp *net.IpWithMask,tu
 		logger.Error("Set tun ifce set failed %w",err)
 		os.Exit(1)
 	}
-	*tunIfce = tun
+	tunIfce = tun
 	asyncCtrl.AppendCancelFuncs(func(){tun.Close()})
 	asyncCtrl.AsyncDo(
 		ctx,
@@ -45,4 +45,5 @@ func readyTun(ctx context.Context,logger log.LoggerLite,tunIp *net.IpWithMask,tu
 	)
 	logger.Info("Create tun success")
 	logger.Info("Setting route table")
+	return tunIfce
 }

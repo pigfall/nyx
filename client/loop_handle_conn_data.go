@@ -45,7 +45,10 @@ func handleConnData(
 				logger.Error(err)
 			}
 		case yy.Proto:
-			handleConnProto(ctx,data,logger,&clientIp,&tunIfce,cancelQueryIp,asyncCtrl,tp)
+			tunIfceTmp := handleConnProto(ctx,data,logger,&clientIp,cancelQueryIp,asyncCtrl,tp)
+			if tunIfceTmp != nil{
+				tunIfce = tunIfceTmp
+			}
 		default:
 			panic(fmt.Errorf("Undefined msgType %v",msgType))
 		}
@@ -57,7 +60,7 @@ func handleIpPacket(data []byte,tunIfce net.TunIfce)error{
 	return err
 }
 
-func handleConnProto(ctx context.Context,data []byte,logger log.LoggerLite,clientIp **net.IpWithMask,tunIfce *net.TunIfce,cancelQueryIp func(),asyncCtrl *async.Ctrl,tp yy.Transport){
+func handleConnProto(ctx context.Context,data []byte,logger log.LoggerLite,clientIp **net.IpWithMask,cancelQueryIp func(),asyncCtrl *async.Ctrl,tp yy.Transport)(tunIfce net.TunIfce){
 	var msg proto.Msg
 	err := json.Unmarshal(data,&msg)
 	if err != nil{
@@ -82,7 +85,7 @@ func handleConnProto(ctx context.Context,data []byte,logger log.LoggerLite,clien
 			logger.Info("Get Client ip ",ipNet.String())
 			*clientIp = ipNet
 			cancelQueryIp()
-			readyTun(ctx,logger,*clientIp,tunIfce,asyncCtrl,tp)
+			return readyTun(ctx,logger,*clientIp,asyncCtrl,tp)
 		}else{
 			if (*clientIp).String()!=ipNet.String(){
 				panic("Client ip not match")
@@ -91,4 +94,5 @@ func handleConnProto(ctx context.Context,data []byte,logger log.LoggerLite,clien
 	default:
 		panic(fmt.Errorf("Undefined msg id",msg.Id))
 	}
+	return nil
 }
