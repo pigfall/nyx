@@ -1,7 +1,10 @@
 package client
 
 import(
+	"os"
+	"net/url"
 	"context"
+	stdnet "net"
 		
 	"github.com/pigfall/tzzGoUtil/async"
 	"github.com/pigfall/tzzGoUtil/log"
@@ -19,6 +22,18 @@ func Run (
 	defer cancel()
 	logger := log.NewHelper("Run",rawLogger,log.LevelDebug)
 	logger.Info("Connecting to address ",cfg.ServerAddr)
+	svrUrl,err := url.Parse(cfg.ServerAddr)
+	if err != nil{
+		logger.Error("Config error, invalid server url %s",cfg.ServerAddr)
+		os.Exit(1)
+	}
+	host :=svrUrl.Hostname()
+	svrIp := stdnet.ParseIP(host)
+	
+	if svrIp == nil{
+		logger.Error("Config error, server ip invalid %s",host)
+		os.Exit(1)
+	}
 	conn,_,err := ws.DefaultDialer.Dial(cfg.ServerAddr,nil)
 	if err != nil{
 		logger.Error(err)
@@ -36,7 +51,7 @@ func Run (
 	asyncCtrl.AsyncDo(
 			ctx,
 			func(ctx context.Context){
-				handleConnData(ctx,rawLogger,conn,asyncCtrl)
+				handleConnData(ctx,rawLogger,conn,asyncCtrl,svrIp)
 			},
 	)
 

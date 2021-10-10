@@ -4,6 +4,7 @@ import(
 	"context"
 	"fmt"
 	"os"
+	stdnet "net"
 	"github.com/pigfall/tzzGoUtil/net"
 	"github.com/pigfall/tzzGoUtil/async"
 	"github.com/pigfall/tzzGoUtil/log"
@@ -12,7 +13,14 @@ import(
 )
 
 
-func readyTun(ctx context.Context,logger log.LoggerLite,tunIp *net.IpWithMask,asyncCtrl *async.Ctrl,tp yy.Transport)(tunIfce net.TunIfce){
+func readyTun(
+	ctx context.Context,
+	logger log.LoggerLite,
+	tunIp *net.IpWithMask,
+	asyncCtrl *async.Ctrl,
+	tp yy.Transport,
+	serverIp stdnet.IP,
+)(tunIfce net.TunIfce){
 	tun,err := water_wrap.NewTun()
 	if err != nil{
 		err = fmt.Errorf("Create tun ifce failed %v",err)
@@ -45,5 +53,24 @@ func readyTun(ctx context.Context,logger log.LoggerLite,tunIp *net.IpWithMask,as
 	)
 	logger.Info("Create tun success")
 	logger.Info("Setting route table")
+	targetA,err := net.FromIpSlashMask("0.0.0.0/1")
+	if err != nil{
+		panic(err)
+	}
+	targetB,err := net.FromIpSlashMask("128.0.0.0/1")
+	if err != nil{
+		panic(err)
+	}
+	err = net.AddRouteIpNet(targetA,tunIfce.Name(),nil)
+	if err != nil{
+		logger.Error("Set route table failed %v",err)
+		os.Exit(1)
+	}
+	err = net.AddRouteIpNet(targetB,tunIfce.Name(),nil)
+	if err != nil{
+		logger.Error("Set route table failed %v",err)
+		os.Exit(1)
+	}
+	logger.Info("Setted route table")
 	return tunIfce
 }

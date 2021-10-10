@@ -2,6 +2,7 @@ package client
 
 import(
 	"encoding/json"
+	stdnet "net"
 	"fmt"
 		"context"
 ws "github.com/gorilla/websocket"
@@ -19,6 +20,7 @@ func handleConnData(
 	rawLogger log.Logger_Log,
 	conn *ws.Conn,
 	asyncCtrl *async.Ctrl,
+	svrIp stdnet.IP,
 ){
 	tp := transport.NewTPWebSocket(conn)
 	logger := log.NewHelper("handleConnData",rawLogger,log.LevelDebug)
@@ -45,7 +47,7 @@ func handleConnData(
 				logger.Error(err)
 			}
 		case yy.Proto:
-			tunIfceTmp := handleConnProto(ctx,data,logger,&clientIp,cancelQueryIp,asyncCtrl,tp)
+			tunIfceTmp := handleConnProto(ctx,data,logger,&clientIp,cancelQueryIp,asyncCtrl,tp,svrIp)
 			if tunIfceTmp != nil{
 				tunIfce = tunIfceTmp
 			}
@@ -60,7 +62,7 @@ func handleIpPacket(data []byte,tunIfce net.TunIfce)error{
 	return err
 }
 
-func handleConnProto(ctx context.Context,data []byte,logger log.LoggerLite,clientIp **net.IpWithMask,cancelQueryIp func(),asyncCtrl *async.Ctrl,tp yy.Transport)(tunIfce net.TunIfce){
+func handleConnProto(ctx context.Context,data []byte,logger log.LoggerLite,clientIp **net.IpWithMask,cancelQueryIp func(),asyncCtrl *async.Ctrl,tp yy.Transport,svrIp stdnet.IP)(tunIfce net.TunIfce){
 	var msg proto.Msg
 	err := json.Unmarshal(data,&msg)
 	if err != nil{
@@ -85,7 +87,7 @@ func handleConnProto(ctx context.Context,data []byte,logger log.LoggerLite,clien
 			logger.Info("Get Client ip ",ipNet.String())
 			*clientIp = ipNet
 			cancelQueryIp()
-			return readyTun(ctx,logger,*clientIp,asyncCtrl,tp)
+			return readyTun(ctx,logger,*clientIp,asyncCtrl,tp,svrIp)
 		}else{
 			if (*clientIp).String()!=ipNet.String(){
 				panic("Client ip not match")
