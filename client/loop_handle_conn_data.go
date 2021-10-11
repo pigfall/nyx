@@ -87,7 +87,12 @@ func handleConnProto(ctx context.Context,data []byte,logger log.LoggerLite,clien
 			logger.Info("Get Client ip ",ipNet.String())
 			*clientIp = ipNet
 			cancelQueryIp()
-			return readyTun(ctx,logger,*clientIp,asyncCtrl,tp,svrIp)
+			tunIfce,err := readyTun(ctx,logger,*clientIp,asyncCtrl,tp,svrIp)
+			if err != nil{
+				asyncCtrl.Cancel()
+				return nil
+			}
+			return tunIfce
 		}else{
 			if (*clientIp).String()!=ipNet.String(){
 				panic("Client ip not match")
