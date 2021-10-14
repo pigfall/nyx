@@ -55,39 +55,14 @@ func readyTun(
 	)
 	logger.Info("Create tun success")
 	logger.Info("Setting route table")
-	defaultRoute,err := net.GetDefaultRouteRule()
-	if err != nil{
-		err = fmt.Errorf("Get default route from kernel failed: %w",err)
-		logger.Error(err)
-		return nil,err
-	}
-	net.DelRoute(serverIp)
-	err = net.AddRoute(serverIp,defaultRoute.DevName,defaultRoute.Via)
+	tunIfceName,err := tun.Name()
 	if err != nil{
 		logger.Error(err)
 		return nil,err
 	}
-	targetA,err := net.FromIpSlashMask("0.0.0.0/1")
-	if err != nil{
-		return nil,err
-	}
-	targetB,err := net.FromIpSlashMask("128.0.0.0/1")
-	if err != nil{
-		return nil,err
-	}
-	ifceName,err :=tunIfce.Name()
+	err = readyTunRoute(logger,serverIp,tunIfceName)
 	if err != nil{
 		logger.Error(err)
-		return nil,err
-	}
-	err = net.AddRouteIpNet(targetA,ifceName,nil)
-	if err != nil{
-		logger.Error("Set route table failed %v",err)
-		return nil,err
-	}
-	err = net.AddRouteIpNet(targetB,ifceName,nil)
-	if err != nil{
-		logger.Error("Set route table failed %v",err)
 		return nil,err
 	}
 	logger.Info("Setted route table")
