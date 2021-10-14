@@ -1,3 +1,5 @@
 tmp_import_helper.txt
 cmd/client/client
 cmd/client/tmp_config.json
+cmd/client/client.exe
+cmd/client/wintun.dll
