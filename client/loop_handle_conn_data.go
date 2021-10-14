@@ -99,7 +99,7 @@ func handleConnProto(ctx context.Context,data []byte,logger log.LoggerLite,clien
 			}
 		}
 	default:
-		panic(fmt.Errorf("Undefined msg id",msg.Id))
+		panic(fmt.Errorf("Undefined msg id %v",msg.Id))
 	}
 	return nil
 }

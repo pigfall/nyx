@@ -24,14 +24,14 @@ func Run (
 	logger.Info("Connecting to address ",cfg.ServerAddr)
 	svrUrl,err := url.Parse(cfg.ServerAddr)
 	if err != nil{
-		logger.Error("Config error, invalid server url %s",cfg.ServerAddr)
+		logger.Errorf("Config error, invalid server url %s",cfg.ServerAddr)
 		os.Exit(1)
 	}
 	host :=svrUrl.Hostname()
 	svrIp := stdnet.ParseIP(host)
 	
 	if svrIp == nil{
-		logger.Error("Config error, server ip invalid %s",host)
+		logger.Errorf("Config error, server ip invalid %s",host)
 		os.Exit(1)
 	}
 	conn,_,err := ws.DefaultDialer.Dial(cfg.ServerAddr,nil)

@@ -8,7 +8,7 @@ import(
 	"github.com/pigfall/tzzGoUtil/async"
 	"github.com/pigfall/tzzGoUtil/log"
   yy "github.com/pigfall/yingying"
-	water_wrap "github.com/pigfall/tzzGoUtil/net/water_tun_wrap"
+	// water_wrap "github.com/pigfall/tzzGoUtil/net/water_tun_wrap"
 )
 
 
@@ -20,7 +20,7 @@ func readyTun(
 	tp yy.Transport,
 	serverIp stdnet.IP,
 )(tunIfce net.TunIfce,err error){
-	tun,err := water_wrap.NewTun()
+	tun,err := NewTun()
 	if err != nil{
 		err = fmt.Errorf("Create tun ifce failed %v",err)
 		logger.Error(err)
@@ -75,12 +75,17 @@ func readyTun(
 	if err != nil{
 		return nil,err
 	}
-	err = net.AddRouteIpNet(targetA,tunIfce.Name(),nil)
+	ifceName,err :=tunIfce.Name()
+	if err != nil{
+		logger.Error(err)
+		return nil,err
+	}
+	err = net.AddRouteIpNet(targetA,ifceName,nil)
 	if err != nil{
 		logger.Error("Set route table failed %v",err)
 		return nil,err
 	}
-	err = net.AddRouteIpNet(targetB,tunIfce.Name(),nil)
+	err = net.AddRouteIpNet(targetB,ifceName,nil)
 	if err != nil{
 		logger.Error("Set route table failed %v",err)
 		return nil,err

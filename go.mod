@@ -17,5 +17,9 @@ require (
 	github.com/songgao/water v0.0.0-20200317203138-2b4b6d7c09d8 // indirect
 	github.com/vishvananda/netlink v1.1.0 // indirect
 	github.com/vishvananda/netns v0.0.0-20191106174202-0a2b9b5464df // indirect
-	golang.org/x/sys v0.0.0-20210910150752-751e447fb3d0 // indirect
+	golang.org/x/net v0.0.0-20210927181540-4e4d966f7476 // indirect
+	golang.org/x/sys v0.0.0-20210927094055-39ccf1dd6fa6 // indirect
+	golang.zx2c4.com/wireguard v0.0.0-00010101000000-000000000000 // indirect
 )
+
+replace golang.zx2c4.com/wireguard => ../wintun-go
