@@ -20,12 +20,14 @@ func readyTun(
 	tp yy.Transport,
 	serverIp stdnet.IP,
 )(tunIfce net.TunIfce,err error){
+	logger.Info("Creating tun ifce ")
 	tun,err := NewTun()
 	if err != nil{
 		err = fmt.Errorf("Create tun ifce failed %v",err)
 		logger.Error(err)
 		return nil,err
 	}
+	logger.Info("Created tun ifce")
 	err = tun.SetIp(tunIp.String())
 	if err != nil{
 		logger.Error("Set tun ifce set failed %w",err)

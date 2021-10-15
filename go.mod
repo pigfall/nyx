@@ -24,3 +24,5 @@ require (
 )
 
 replace golang.zx2c4.com/wireguard => ../wintun-go
+
+replace github.com/pigfall/wtun-go => ../wtun-go
