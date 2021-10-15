@@ -13,12 +13,13 @@ require (
 	github.com/go-kit/kit v0.11.0 // indirect
 	github.com/go-logfmt/logfmt v0.5.0 // indirect
 	github.com/google/gopacket v1.1.17 // indirect
+	github.com/pigfall/wtun-go v0.0.0-20211015084304-c7063103c2c3 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/songgao/water v0.0.0-20200317203138-2b4b6d7c09d8 // indirect
 	github.com/vishvananda/netlink v1.1.0 // indirect
 	github.com/vishvananda/netns v0.0.0-20191106174202-0a2b9b5464df // indirect
 	golang.org/x/net v0.0.0-20210927181540-4e4d966f7476 // indirect
-	golang.org/x/sys v0.0.0-20210927094055-39ccf1dd6fa6 // indirect
+	golang.org/x/sys v0.0.0-20211013075003-97ac67df715c // indirect
 	golang.zx2c4.com/wireguard v0.0.0-00010101000000-000000000000 // indirect
 )
 

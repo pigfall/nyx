@@ -2,6 +2,7 @@ package client
 
 import(
 	"github.com/pigfall/tzzGoUtil/net/wintun"
+	wg "github.com/pigfall/wtun-go"
 	"fmt"
 	"github.com/pigfall/tzzGoUtil/net"
 
@@ -9,9 +10,8 @@ import(
 
 
 func NewTun()(net.TunIfce,error){
-	tun,err := wintun.NewTun("yy-ifce",1500)
+	tun,err := wg.NewTun("yy-ifce")
 	if err != nil{
-		err = fmt.Errorf("Create tun ifce failed %v",err)
 		return nil,err
 	}
 	return tun,nil
