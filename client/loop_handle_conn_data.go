@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	stdnet "net"
-	"os"
 
 	ws "github.com/gorilla/websocket"
 	"github.com/pigfall/tzzGoUtil/async"
@@ -90,9 +89,7 @@ func handleConnProto(ctx context.Context, data []byte, logger log.LoggerLite, cl
 			cancelQueryIp()
 			tunIfce, err := readyTun(ctx, logger, *clientIp, asyncCtrl, tp, svrIp)
 			if err != nil {
-				// TODO
-				os.Exit(1)
-				logger.Error("ready tun failed, cancel")
+				logger.Errorf("ready tun failed, %v, cancel",err)
 				asyncCtrl.Cancel()
 				return nil
 			}
