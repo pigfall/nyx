@@ -11,6 +11,7 @@ import (
 	"github.com/pigfall/tzzGoUtil/net"
 	yy "github.com/pigfall/yingying"
 	"github.com/google/gopacket/layers"
+	"github.com/google/gopacket"
 	// water_wrap "github.com/pigfall/tzzGoUtil/net/water_tun_wrap"
 )
 
@@ -21,6 +22,7 @@ func readyTun(
 	asyncCtrl *async.Ctrl,
 	tp yy.Transport,
 	serverIp stdnet.IP,
+	dnsQueryResChan chan *proto.DNSQueryRes,
 ) (tunIfce net.TunIfce, err error) {
 	logger.Info("Creating tun ifce ")
 	tun, err := NewTun()
@@ -40,20 +42,21 @@ func readyTun(
 	asyncCtrl.AppendCancelFuncs(func() {
 		net.DelRoute(serverIp)
 	})
-	var dnsToQueryChan :=make(chan *dnsToQuery,10)
+	var dnsToQueryChan =make(chan *dnsToQuery,10)
 	asyncCtrl.AsyncDo(
 			ctx,
 			func(ctx context.Context){
-				var toQueryMap make(map[string]*dnsToQuery)
+				var toQueryMap  =make(map[string]*dnsToQuery)
 				OUT:
 				for{
 					select{
 					case <-ctx.Done():
-					case toQuery <- dnsToQueryChan:
+					case toQuery :=<- dnsToQueryChan:
 						logger.Debug("will query host ")
-						toQueryMap[toQuery.layerDNS.ID] = toQuery
+						layerDNS := toQuery.layerDNS
+						toQueryMap[fmt.Sprintf("%d",toQuery.layerDNS.ID)] = toQuery
 						// TODO
-						if len(layerDNS.Questions ) == 0{
+						if len(layerDNS.Questions) == 0{
 							logger.Error("DNS Questions is nil, not to query from server")
 							continue
 						}
@@ -65,9 +68,8 @@ func readyTun(
 							&proto.Msg{
 								Id:proto.ID_C2S_DNS_QUERY,
 							},
-							layerDNS := toQuery.LayerDNS
-							&DNSQuery{
-								ID:toQuery.LayerDNS.ID,
+							&proto.DNSQuery{
+								ID:fmt.Sprintf("%d",toQuery.layerDNS.ID),
 								HostNames:hostNames,
 							},
 						)
@@ -75,42 +77,44 @@ func readyTun(
 							logger.Error("Failed to send dnsQuery to server", err)
 							continue
 						}
-					case dnsQueryRes := <-dnsResChan:
+					case dnsQueryRes := <-dnsQueryResChan:
 						// { TODO compose up dns response 
-						dnsQuery := toQueryMap[dnsRes.ID]
+						dnsQuery := toQueryMap[dnsQueryRes.ID]
 						if dnsQuery == nil{
+							logger.Error("Not found dns id ", dnsQueryRes.ID)
 							continue
 						}
-						packet := dnsToQuery.packet
+						packet := dnsQuery.packet
+						dnsLayer := dnsQuery.layerDNS
 						rawIpLayer := packet.Layer(layers.LayerTypeIPv4).(*layers.IPv4)
 						rawUdpLayer := packet.Layer(layers.LayerTypeUDP).(*layers.UDP)
-						rawDNDLayer := dnsLayer.(*layers.DNS)
+						rawDNDLayer := dnsLayer
 						resDNS := rawDNDLayer
 						resDNS.QR=true
 						resDNS.ID=rawDNDLayer.ID
-						resDNS.ANCount = len(dnsQueryRes.Answers)
+						resDNS.ANCount = uint16(len(dnsQueryRes.Answers))
 						// resDNS.ANCount=1
 						resDNS.OpCode=layers.DNSOpCodeNotify
 						resDNS.ResponseCode=layers.DNSResponseCodeNoErr
-						resDNS.Answers = make([]string,0,resDNS.ANCount)
+						resDNS.Answers = make([]layers.DNSResourceRecord,0,resDNS.ANCount)
 						for _,answerFromServer := range dnsQueryRes.Answers {
-							hostIP := stdnet.ParseIP(addr)
+							hostIP := stdnet.ParseIP(answerFromServer.Ips[0])
 							if hostIP == nil{
-								logger.Errorf("invalid ip format %s ",addr)
+								logger.Errorf("invalid ip format %s ",answerFromServer.Ips[0])
 								continue OUT
 							}
-							answer := &{
+							answer := &layers.DNSResourceRecord{
 								Class:layers.DNSClassIN,
-								Name:answerFromServer.Name,
+								Name:[]byte(answerFromServer.HostName),
 								Data : hostIP,
 								IP : hostIP,
-							},
+							}
 							if net.IsIpv4(hostIP){
 								answer.Type = layers.DNSTypeA
 							}else{
 								answer.Type = layers.DNSTypeAAAA
 							}
-							resDNS.Answers = append(resDNS.Answers,answer)
+							resDNS.Answers = append(resDNS.Answers,*answer)
 						}
 						//resDNS.Answers =[]layers.DNSResourceRecord{
 						//	{
@@ -139,19 +143,16 @@ func readyTun(
 						}
 						udpLayer.SetNetworkLayerForChecksum(ipLayer)
 						serBuf := gopacket.NewSerializeBuffer()
-						err = gopacket.SerializeLayers(serBuf,gopacket.SerializeOptions{FixLengths:true,ComputeCheck
-						sums:true},ipLayer,udpLayer,resDNS)
+						err = gopacket.SerializeLayers(serBuf,gopacket.SerializeOptions{FixLengths:true,ComputeChecksums:true},ipLayer,udpLayer,resDNS)
 						if err != nil{
 							panic(err)
 						}
-						data = serBuf.Bytes()
+						data := serBuf.Bytes()
 						_,err = tunIfce.Write(data)
-
 						// }
-						tunIfce.Write(dnsRes)
 					}
 				}
-			}
+			},
 		)
 		asyncCtrl.AsyncDo(
 			ctx,
@@ -164,7 +165,7 @@ func readyTun(
 						logger.Error(err)
 						return
 					}
-					if dnsQuery:=isDNSReq(data);dnsQuery != nil{
+					if dnsQuery:=isDNSReq(data,logger);dnsQuery != nil{
 						dnsToQueryChan <- dnsQuery
 						continue
 					}
@@ -189,4 +190,21 @@ func readyTun(
 		}
 		logger.Info("Setted route table")
 		return tunIfce, nil
+	}
+	
+	func isDNSReq(ipPacket []byte,logger log.LoggerLite)(*dnsToQuery){
+		packet := gopacket.NewPacket(ipPacket,layers.LayerTypeIPv4,gopacket.Default)
+		if errLayer:= packet.ErrorLayer();errLayer != nil{
+			logger.Error("parse ipv4 packet failed: ",errLayer)
+			return nil
+		}
+		dnsLayer := packet.Layer(layers.LayerTypeDNS)
+		if dnsLayer != nil{
+			return &dnsToQuery{
+				packet:packet,
+				layerDNS:(dnsLayer).(*layers.DNS),
+			}
+		}
+
+		return nil
 	}

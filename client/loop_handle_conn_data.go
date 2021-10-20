@@ -32,6 +32,7 @@ func handleConnData(
 	}()
 	var clientIp *net.IpWithMask
 	var tunIfce net.TunIfce
+	var dnsQueryResChan = make(chan *proto.DNSQueryRes,10)
 	for {
 		msgType, data, err := tp.Read()
 		if err != nil {
@@ -47,7 +48,7 @@ func handleConnData(
 				logger.Error(err)
 			}
 		case yy.Proto:
-			tunIfceTmp := handleConnProto(ctx, data, logger, &clientIp, cancelQueryIp, asyncCtrl, tp, svrIp)
+			tunIfceTmp := handleConnProto(ctx, data, logger, &clientIp, cancelQueryIp, asyncCtrl, tp, svrIp,dnsQueryResChan)
 			if tunIfceTmp != nil {
 				tunIfce = tunIfceTmp
 			}
@@ -62,7 +63,7 @@ func handleIpPacket(data []byte, tunIfce net.TunIfce) error {
 	return err
 }
 
-func handleConnProto(ctx context.Context, data []byte, logger log.LoggerLite, clientIp **net.IpWithMask, cancelQueryIp func(), asyncCtrl *async.Ctrl, tp yy.Transport, svrIp stdnet.IP) (tunIfce net.TunIfce) {
+func handleConnProto(ctx context.Context, data []byte, logger log.LoggerLite, clientIp **net.IpWithMask, cancelQueryIp func(), asyncCtrl *async.Ctrl, tp yy.Transport, svrIp stdnet.IP,dnsQueryResChan chan *proto.DNSQueryRes) (tunIfce net.TunIfce) {
 	var msg proto.Msg
 	err := json.Unmarshal(data, &msg)
 	if err != nil {
@@ -87,7 +88,7 @@ func handleConnProto(ctx context.Context, data []byte, logger log.LoggerLite, cl
 			logger.Info("Get Client ip ", ipNet.String())
 			*clientIp = ipNet
 			cancelQueryIp()
-			tunIfce, err := readyTun(ctx, logger, *clientIp, asyncCtrl, tp, svrIp)
+			tunIfce, err := readyTun(ctx, logger, *clientIp, asyncCtrl, tp, svrIp,dnsQueryResChan)
 			if err != nil {
 				logger.Errorf("ready tun failed, %v, cancel",err)
 				asyncCtrl.Cancel()
@@ -99,6 +100,15 @@ func handleConnProto(ctx context.Context, data []byte, logger log.LoggerLite, cl
 				panic("Client ip not match")
 			}
 		}
+	case proto.ID_S2C_DNS_QUERY:
+		// TODO
+		var resBody = &proto.DNSQueryRes{}
+		err := unmarshalBody(msg.Body,resBody)
+		if err != nil {
+			logger.Error(err)
+			return 
+		}
+		dnsQueryResChan <-resBody
 	default:
 		panic(fmt.Errorf("Undefined msg id %v", msg.Id))
 	}
