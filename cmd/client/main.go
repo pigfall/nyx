@@ -35,11 +35,11 @@ func main() {
 	err := encoding.UnMarshalByFile(cfgPath,&cfg,json.Unmarshal)
 	if err != nil{
 		loggerMain.Errorf("Parse config file %s failed %v",cfgPath,err)
-		os.Exit(1)
+		mainQuit(loggerMain)
 	}
 	err = client.Run(ctx,rawLogger,&cfg)
 	if err != nil{
 		loggerMain.Error(err)
-		os.Exit(1)
+		mainQuit(loggerMain)
 	}
 }

@@ -58,8 +58,11 @@ func handleConnData(
 }
 
 func handleIpPacket(data []byte, tunIfce net.TunIfce) error {
-	_, err := tunIfce.Write(data)
-	return err
+	if tunIfce != nil{
+			_, err := tunIfce.Write(data)
+			return err
+	}
+	return nil
 }
 
 func handleConnProto(ctx context.Context, data []byte, logger log.LoggerLite, clientIp **net.IpWithMask, cancelQueryIp func(), asyncCtrl *async.Ctrl, tp yy.Transport, svrIp stdnet.IP) (tunIfce net.TunIfce) {

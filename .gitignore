@@ -3,3 +3,4 @@ cmd/client/client
 cmd/client/tmp_config.json
 cmd/client/client.exe
 cmd/client/wintun.dll
+cmd/client/build/build.exe
