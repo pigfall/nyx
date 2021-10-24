@@ -76,23 +76,22 @@ func connToTunIfce(ctx context.Context, rawLogger log.Logger_Log, conn *ws.Conn,
 				ctx, rawLogger,
 				msg,
 			)
-			if err := res.Err(); err != nil {
-				if err := res.Err() ;err != nil{
-					err = conn.WriteJSON(res)
-					if err != nil {
-						logger.Error(err)
-					}
-				}else{
-					bodyByte,err := json.Marshal(body)
-					if err != nil {
-						logger.Error(err)
-					} else {
-						res.Body = bodyByte
-						conn.WriteJSON(res)
-					}
+			if err := res.Err() ;err != nil{
+				err = conn.WriteJSON(res)
+				if err != nil {
+					logger.Error(err)
 				}
-				//
+			}else{
+				bodyByte,err := json.Marshal(body)
+				if err != nil {
+					logger.Error(err)
+				} else {
+					res.Body = bodyByte
+					conn.WriteJSON(res)
+				}
 			}
+				//
+			
 		}
 	}
 }
