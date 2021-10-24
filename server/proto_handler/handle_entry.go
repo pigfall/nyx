@@ -33,8 +33,6 @@ func (this *Handler)Handle(ctx context.Context,rawLogger log.Logger_Log,msg *pro
 	switch msg.Id {
 	case proto.ID_C2S_QUERY_IP:
 		handler = this.handleQueryIp
-	case proto.ID_C2S_DNS_QUERY:
-		handler = this.handleDNSQuery
 	default :
 		err := fmt.Errorf("Undefined Msg Id %v",msg.Id)
 		logger.Error(err)

@@ -34,6 +34,7 @@ func Serve(
 	asyncCtrl.AppendCancelFuncs(func(){tunIfce.Close()})
 	asyncCtrl.OnRoutineQuit(func(){asyncCtrl.Cancel()})
 	defer asyncCtrl.Wait()
+	defer asyncCtrl.Cancel()
 	ipPool,err :=net.NewIpPool(
 		tunIp.BaseIpNet(),
 		[]*net.IpWithMask{
@@ -86,6 +87,7 @@ func Serve(
 	)
 	l,err := stdnet.Listen("tcp",fmt.Sprintf(":%d",cfg.Port))
 	if err != nil{
+		logger.Error(err)
 		return err
 	}
 	asyncCtrl.AppendCancelFuncs(func(){l.Close()})
