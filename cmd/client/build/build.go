@@ -27,10 +27,12 @@ func main() {
 		log.Printf("change to directory %s failed\n",clientBinDir)
 	}
 	log.Printf("Change to directory %s\n",clientBinDir)
-	out,errOut,err := process.ExeOutput("go","build","-o","client.exe",".")
+	var clientBinName = "client.exe"
+	out,errOut,err := process.ExeOutput("go","build","-o",clientBinName,".")
 	log.Println("Compiling")
 	if err !=nil{
 		log.Println("Compiled failed: %v, %v, %v",out,errOut,err)
 		goos.Exit(1)
 	}
+	log.Println("Suc compiled result is in ",path.Join(clientBinDir,clientBinName))
 }
