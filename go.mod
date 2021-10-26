@@ -8,7 +8,7 @@ require (
 	github.com/google/gopacket v1.1.17
 	github.com/gorilla/websocket v1.4.2
 	github.com/pigfall/tzzGoUtil v1.4.0
-	github.com/pigfall/wtun-go v0.1.0
+	github.com/pigfall/wtun-go v0.1.1
 	golang.org/x/sys v0.0.0-20211013075003-97ac67df715c
 	golang.zx2c4.com/wireguard/windows v0.5.0
 )
