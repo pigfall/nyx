@@ -1,7 +1,6 @@
 package main
 
 import(
-	"context"
 	"encoding/json"
 	"github.com/pigfall/tzzGoUtil/path/filepath"
 	osHelper "github.com/pigfall/tzzGoUtil/os"
@@ -28,7 +27,7 @@ func main() {
 	}
 
 	//
-	ctx:= context.Background()
+	// ctx:= context.Background()
 	rawLogger := log.NewJsonLogger(os.Stdout)
 	loggerMain := log.NewHelper("main",rawLogger,log.LevelDebug)
 	cfg := client.RunCfg{}
@@ -37,9 +36,11 @@ func main() {
 		loggerMain.Errorf("Parse config file %s failed %v",cfgPath,err)
 		mainQuit(loggerMain)
 	}
-	err = client.Run(ctx,rawLogger,&cfg)
+	err = client.LoopRun(&cfg)
+	// err = client.Run(ctx,rawLogger,&cfg)
 	if err != nil{
 		loggerMain.Error(err)
 		mainQuit(loggerMain)
 	}
+	loggerMain.Info("App quit")
 }

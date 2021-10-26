@@ -1,8 +1,8 @@
 package client
 
 import(
-	"os"
 	"net/url"
+	"fmt"
 	"context"
 	stdnet "net"
 		
@@ -11,6 +11,19 @@ import(
 ws "github.com/gorilla/websocket"
 )
 
+type errQuit struct{
+	err error
+}
+
+func newErrQuit(err error)error{
+	return &errQuit{
+		err:err,
+	}
+}
+
+func (this *errQuit) Error()string{
+	return this.err.Error()
+}
 
 
 func Run (
@@ -24,15 +37,17 @@ func Run (
 	logger.Info("Connecting to address ",cfg.ServerAddr)
 	svrUrl,err := url.Parse(cfg.ServerAddr)
 	if err != nil{
-		logger.Errorf("Config error, invalid server url %s",cfg.ServerAddr)
-		os.Exit(1)
+		err = fmt.Errorf("Config error, invalid server url %s",cfg.ServerAddr)
+		logger.Error(err)
+		return newErrQuit(err)
 	}
 	host :=svrUrl.Hostname()
 	svrIp := stdnet.ParseIP(host)
 	
 	if svrIp == nil{
-		logger.Errorf("Config error, server ip invalid %s",host)
-		os.Exit(1)
+		err = fmt.Errorf("Config error, server ip invalid %s",host)
+		logger.Error(err)
+		return newErrQuit(err)
 	}
 	conn,_,err := ws.DefaultDialer.Dial(cfg.ServerAddr,nil)
 	if err != nil{
@@ -45,6 +60,7 @@ func Run (
 	asyncCtrl.AppendCancelFuncs(cancel)
 	asyncCtrl.OnRoutineQuit(
 			func(){
+				logger.Debug("goroutine quit")
 				asyncCtrl.Cancel()
 			},
 	)

@@ -22,7 +22,7 @@ require (
 	github.com/vishvananda/netns v0.0.0-20191106174202-0a2b9b5464df // indirect
 )
 
-// replace github.com/pigfall/wtun-go => ../wtun-go
+replace github.com/pigfall/wtun-go => ../wtun-go
 
 replace golang.zx2c4.com/wireguard/windows v0.5.0 => github.com/pigfall/wireguard-windows v0.5.0
 
