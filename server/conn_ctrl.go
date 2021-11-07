@@ -18,12 +18,16 @@ type connCtrl struct {
 	rawLogger  log.Logger_Log
 }
 
-func newConnCtrl(ipPoolIfce ipPoolIfce, rawLogger log.Logger_Log) *connCtrl {
+func newConnCtrl(ipPoolIfce ipPoolIfce, rawLogger log.Logger_Log) yy.ConnCtrl{
 	return &connCtrl{
 		conns:      make(map[string]yy.Transport),
 		ipPoolIfce: ipPoolIfce,
 		rawLogger:  rawLogger,
 	}
+}
+
+func (this *connCtrl) GetConns()map[string]yy.Transport{
+	return this.conns
 }
 
 func (this *connCtrl) Serve(

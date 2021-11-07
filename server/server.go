@@ -56,7 +56,7 @@ func Serve(
 					logger.Error(err)
 					return
 				}
-				for _,conn := range  connCtrl.conns{
+				for _,conn := range  connCtrl.GetConns(){
 					err =conn.WriteIpPacket(buf[:n])
 					if err != nil{
 						logger.Error(err)

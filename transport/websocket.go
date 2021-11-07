@@ -51,3 +51,4 @@ func(this *tpWebsocket)WriteMsg(msg *proto.Msg,body interface{})(error){
 	return this.conn.WriteJSON(msg)
 }
 
+
