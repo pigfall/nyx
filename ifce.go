@@ -1,7 +1,7 @@
 package yingying
 
 import(
-	"github.com/pigfall/yingying/proto"
+	// "github.com/pigfall/yingying/proto"
 )
 
 type TransprtMsgType int
@@ -13,6 +13,7 @@ const(
 
 type Transport interface{
 	WriteIpPacket(ipPacketBytes []byte)(error)
-	WriteMsg(msg *proto.Msg,body interface{})(error)
+	// WriteMsg(msg *proto.Msg,body interface{})(error)
 	Read()(msgType TransprtMsgType,data []byte,err error)
+	WriteJSON(msg interface{})(error)
 }

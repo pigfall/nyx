@@ -7,6 +7,7 @@ import(
 	"github.com/pigfall/tzzGoUtil/log"
 	stdnet "net"
 	"github.com/pigfall/tzzGoUtil/net"
+	tp "github.com/pigfall/yingying/transport"
 	"github.com/pigfall/tzzGoUtil/async"
 	ws "github.com/gorilla/websocket"
 )
@@ -56,7 +57,7 @@ func Serve(
 					return
 				}
 				for _,conn := range  connCtrl.conns{
-					err =conn.WriteMessage(ws.BinaryMessage,buf[:n])
+					err =conn.WriteIpPacket(buf[:n])
 					if err != nil{
 						logger.Error(err)
 					}
@@ -79,7 +80,8 @@ func Serve(
 				loggerHttpSvr.Error(err)
 				return
 			}
-			err = connCtrl.Serve(ctx,conn,tunIfce)
+			defer conn.Close()
+			err = connCtrl.Serve(ctx,tp.NewTPWebSocket(conn),tunIfce)
 			if err != nil{
 				logger.Error(err)
 			}

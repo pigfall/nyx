@@ -2,7 +2,7 @@ module github.com/pigfall/yingying
 
 go 1.17
 
-//replace github.com/pigfall/tzzGoUtil v1.3.0 => ../tzzGoUtil
+replace github.com/pigfall/tzzGoUtil v1.4.0 => ../tzzGoUtil
 
 require (
 	github.com/google/gopacket v1.1.17
