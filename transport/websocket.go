@@ -36,6 +36,10 @@ func(this *tpWebsocket)WriteIpPacket(ipPacketBytes []byte)(error){
 
 }
 
+func (this *tpWebsocket) WriteJSON(msg interface{})error{
+	return this.conn.WriteJSON(msg)
+}
+
 func(this *tpWebsocket)WriteMsg(msg *proto.Msg,body interface{})(error){
 	if body != nil{
 		bodyBytes,err := json.Marshal(body)

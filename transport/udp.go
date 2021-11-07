@@ -5,7 +5,6 @@ import(
 	// "encoding/json"
 
   yy "github.com/pigfall/yingying"
-   "github.com/pigfall/yingying/proto"
 )
 
 type tpUDP struct{
@@ -27,6 +26,8 @@ func(this *tpUDP)WriteIpPacket(ipPacketBytes []byte)(error){
 	panic("TODO")
 }
 
-func(this *tpUDP)WriteMsg(msg *proto.Msg,body interface{})(error){
+
+func (this *tpUDP) WriteJSON(msg interface{})(error){
 	panic("TODO")
+
 }
