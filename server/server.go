@@ -2,14 +2,11 @@ package server
 
 import(
 	"fmt"
-	"net/http"
 	"context"
 	"github.com/pigfall/tzzGoUtil/log"
-	stdnet "net"
 	"github.com/pigfall/tzzGoUtil/net"
-	tp "github.com/pigfall/yingying/transport"
+	yy "github.com/pigfall/yingying"
 	"github.com/pigfall/tzzGoUtil/async"
-	ws "github.com/gorilla/websocket"
 )
 
 
@@ -21,6 +18,7 @@ func Serve(
 	ctx context.Context,
 	rawLogger log.Logger_Log,
 	cfg *ServeCfg,
+	transportServer  yy.TransportServer,
 )error{
 	asyncCtrl := &async.Ctrl{}
 	logger := log.NewHelper("Serve",rawLogger,log.LevelDebug)
@@ -68,32 +66,7 @@ func Serve(
 	// }
 
 	// { socket listen
-	loggerHttpSvr := log.NewHelper("httpServer",rawLogger,log.LevelDebug)
-	httpServer := http.NewServeMux()
-	httpServer.HandleFunc(
-		"/",
-		func(res http.ResponseWriter,req *http.Request){
-			loggerHttpSvr.Debug("rcv request from  ",req.RemoteAddr)
-			upgrader := ws.Upgrader{}
-			conn,err := upgrader.Upgrade(res,req,nil)
-			if err != nil {
-				loggerHttpSvr.Error(err)
-				return
-			}
-			defer conn.Close()
-			err = connCtrl.Serve(ctx,tp.NewTPWebSocket(conn),tunIfce)
-			if err != nil{
-				logger.Error(err)
-			}
-		},
-	)
-	l,err := stdnet.Listen("tcp",fmt.Sprintf(":%d",cfg.Port))
-	if err != nil{
-		logger.Error(err)
-		return err
-	}
-	asyncCtrl.AppendCancelFuncs(func(){l.Close()})
-	err = http.Serve(l,httpServer)
+	err = transportServer.Serve(ctx,logger,connCtrl,tunIfce)
 	defer asyncCtrl.Cancel()
 	if err != nil{
 		logger.Error(err)

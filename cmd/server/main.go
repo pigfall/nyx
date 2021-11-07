@@ -1,11 +1,14 @@
 package main
 
 import (
+	"fmt"
 	"context"
 	"encoding/json"
+	"net"
 	stdos "os"
 	"flag"
 	"github.com/pigfall/yingying/server"
+	yy "github.com/pigfall/yingying"
 	"github.com/pigfall/tzzGoUtil/log"
 	"github.com/pigfall/tzzGoUtil/path/filepath"
 	"github.com/pigfall/tzzGoUtil/encoding"
@@ -38,8 +41,24 @@ func main() {
 
 	loggerMain.Info("Serving")
 	ctx := context.Background()
-	err = server.Serve(ctx,rawLogger,&cfg)
+	mode := cfg.Mode
+	var tpServer yy.TransportServer
+	ipToListen  := net.ParseIP("0.0.0.0")
+	if ipToListen ==  nil{
+		panic(fmt.Errorf("0.0.0.0 parse failed"))
+	}
+	switch mode{
+	case "udp":
+		panic("TODO")
+	case  "ws":
+		tpServer = server. NewTransportServerWebSocket(ipToListen,cfg.Port)
+	default:
+		loggerMain.Errorf("Config error, mode is %v undefined , must be udp or ws",mode)
+		stdos.Exit(1)
+	}
+	err = server.Serve(ctx,rawLogger,&cfg,tpServer)
 	if err != nil{
 		loggerMain.Error(err)
 	}
+	loggerMain.Info("App quit")
 }
