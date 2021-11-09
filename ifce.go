@@ -21,7 +21,7 @@ type Transport interface{
 }
 
 type TransportServer interface{
-	Serve(ctx context.Context,logger log.LoggerLite,connCtrl ConnCtrl,tunIfce net.TunIfce)error
+	Serve(ctx context.Context,logger log.LoggerLite,connCtrl ConnCtrl,tunIfce net.TunIfce,tunIp *net.IpWithMask)error
 }
 
 type ConnCtrl interface{

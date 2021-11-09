@@ -25,7 +25,7 @@ func NewTransportServerWebSocket(ipToListen net.IP,port int) yy.TransportServer 
 }
 
 
-func (this *tpServerWebSocket) Serve(ctx context.Context,logger log.LoggerLite,connCtrl yy.ConnCtrl,tunIfce tzNet.TunIfce)(error){
+func (this *tpServerWebSocket) Serve(ctx context.Context,logger log.LoggerLite,connCtrl yy.ConnCtrl,tunIfce tzNet.TunIfce,tunIp *tzNet.IpWithMask)(error){
 	l,err := net.Listen("tcp",fmt.Sprintf(":%d",this.port))
 	if err != nil{
 		logger.Error(err)

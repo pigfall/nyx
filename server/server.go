@@ -66,7 +66,7 @@ func Serve(
 	// }
 
 	// { socket listen
-	err = transportServer.Serve(ctx,logger,connCtrl,tunIfce)
+	err = transportServer.Serve(ctx,logger,connCtrl,tunIfce,tunIp)
 	defer asyncCtrl.Cancel()
 	if err != nil{
 		logger.Error(err)
